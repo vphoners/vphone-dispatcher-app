@@ -7,8 +7,12 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.List;
+
 public class DispatcherService extends Service {
     public static boolean isStarted = false;
+
+    private VPhoneDao datasource;
 
     public DispatcherService() {
     }
@@ -32,6 +36,11 @@ public class DispatcherService extends Service {
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
         isStarted = true;
+
+        datasource = new VPhoneDao(this);
+        datasource.open();
+
+        List<VPhoneSMS> values = datasource.getAllComments();
     }
 
     @Override
@@ -46,6 +55,7 @@ public class DispatcherService extends Service {
          */
 
 
+
         return START_NOT_STICKY;
     }
 
@@ -57,6 +67,8 @@ public class DispatcherService extends Service {
         // Tell the user we stopped.
         Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
         isStarted = false;
+
+        datasource.close();
     }
 
     @Override

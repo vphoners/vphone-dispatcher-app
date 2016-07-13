@@ -7,12 +7,17 @@ import android.os.Bundle;
 import android.telephony.gsm.SmsMessage;
 
 public class SmsReceiver extends BroadcastReceiver {
+    private VPhoneDao datasource;
+
     public SmsReceiver() {
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         if(intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")){
+            datasource = new VPhoneDao(context);
+            datasource.open();
+            
             Bundle bundle = intent.getExtras();           //---get the SMS message passed in---
             SmsMessage[] msgs = null;
             if (bundle != null){
@@ -25,11 +30,16 @@ public class SmsReceiver extends BroadcastReceiver {
                         long timestamp = msgs[i].getTimestampMillis();
                         String msg_from = msgs[i].getOriginatingAddress();
                         String msgBody = msgs[i].getMessageBody();
+
+                        datasource.createSms(msgBody, msg_from, String.valueOf(timestamp));
                     }
+
+
                 }catch(Exception e){
 //                            Log.d("Exception caught",e.getMessage());
                 }
             }
+            datasource.close();
         }
     }
 }
