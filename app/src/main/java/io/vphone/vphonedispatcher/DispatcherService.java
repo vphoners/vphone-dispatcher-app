@@ -1,8 +1,5 @@
 package io.vphone.vphonedispatcher;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -40,6 +37,15 @@ public class DispatcherService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("LocalService", "Received start id " + startId + ": " + intent);
+
+
+        /**
+         *
+         * DO ASYNCTASK
+         *
+         */
+
+
         return START_NOT_STICKY;
     }
 
