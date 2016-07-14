@@ -5,11 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.telephony.gsm.SmsMessage;
+import android.util.Log;
 
 public class SmsReceiver extends BroadcastReceiver {
     private VPhoneDao datasource;
 
     public SmsReceiver() {
+
     }
 
     @Override
@@ -32,11 +34,14 @@ public class SmsReceiver extends BroadcastReceiver {
                         String msgBody = msgs[i].getMessageBody();
 
                         datasource.createSms(msgBody, msg_from, String.valueOf(timestamp));
+
+                        Log.v("Processing SMS", "Adding to local db with body: " + msgBody);
                     }
 
 
                 }catch(Exception e){
 //                            Log.d("Exception caught",e.getMessage());
+                    Log.e("Error processing", "Error processing incoming SMS: " + e.getMessage());
                 }
             }
             datasource.close();

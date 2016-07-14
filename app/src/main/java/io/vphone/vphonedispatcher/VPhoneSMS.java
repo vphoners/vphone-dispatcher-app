@@ -8,6 +8,7 @@ public class VPhoneSMS {
     private String smsbody;
     private String smsfrom;
     private String smstimestamp;
+    private int processing;
 
     public long getId() {
         return id;
@@ -41,6 +42,15 @@ public class VPhoneSMS {
         this.smstimestamp = smstimestamp;
     }
 
+
+    public int getProcessing() {
+        return processing;
+    }
+
+    public void setProcessing(int processing) {
+        this.processing = processing;
+    }
+
     @Override
     public String toString() {
         return "VPhoneSMS{" +
@@ -50,4 +60,5 @@ public class VPhoneSMS {
                 ", smstimestamp='" + smstimestamp + '\'' +
                 '}';
     }
+
 }
