@@ -65,11 +65,11 @@ public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
 
     @Override
     protected JSONObject doInBackground(String... params) {
-        Log.v("INSIDE DOINBACKGRROUND", "HttpURLConnection");
+
         try {
             URL url = new URL(params[0]);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            Log.v("HttpURLConnection", "HttpURLConnection");
+
             conn.setRequestMethod(this.requestMethod.name());
             conn.setRequestProperty("Content-Type", "application/json");
 
@@ -83,9 +83,6 @@ public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
             // Allow to send a body to the api
             conn.setDoOutput(true);
 
-            // Allow the application to receive a response
-            conn.setDoInput(true);
-
             // Disable caching
             conn.setUseCaches(false);
 
@@ -95,14 +92,10 @@ public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
             if (this.requestMethod != RequestMethod.GET || this.requestMethod != RequestMethod.DELETE) {
                 if (this.body != null) {
                     String str = this.body.toString();
-                 /*   byte[] outputInBytes = str.getBytes("UTF-8");
-                    OutputStream os = conn.getOutputStream();
-                    os.write(outputInBytes);
-                    os.close();*/
 
                     Writer writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
                     writer.write(str);
-// json data
+
                     writer.close();
 
                     Log.v("Body", this.body.toString());
@@ -110,11 +103,9 @@ public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
             }
 
 
-            Log.v("Response code", "Before get Response code");
 
             int code = conn.getResponseCode();
 
-            Log.v("INSIDE ASYNC TASK", "Before Code check " + code);
             if (code == HttpURLConnection.HTTP_OK) {
                 InputStream in = new BufferedInputStream(conn.getInputStream());
                 String response = new Scanner(in, "UTF-8").useDelimiter("\\A").next();

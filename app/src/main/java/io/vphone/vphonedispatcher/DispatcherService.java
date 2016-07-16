@@ -22,7 +22,7 @@ public class DispatcherService extends Service {
     public final static String SERVICE_URL = "http://192.168.0.203";
     public final static int port = 8888;
 
-    private VPhoneDao datasource;
+    private volatile VPhoneDao datasource;
     private Worker worker;
 
     public DispatcherService() {
@@ -143,7 +143,7 @@ public class DispatcherService extends Service {
                     sendSms.execute(SERVICE_URL + ":" + port + "/sms");
                 }
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(500);
                     fetchMessagesAndSend();
                 } catch (InterruptedException e) {
                     e.printStackTrace();

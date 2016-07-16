@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "vphonedispatcher.vphone.io.vphone_dispatcher_app"
+        applicationId "io.vphone.vphonedispatcher"
         minSdkVersion 4
         targetSdkVersion 23
         versionCode 1
