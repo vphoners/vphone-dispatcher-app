@@ -4,7 +4,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 import org.json.JSONArray;
@@ -50,6 +52,9 @@ public class DispatcherService extends Service {
 
         datasource = new VPhoneDao(this);
         datasource.open();
+
+
+
 
         this.worker = new Worker(datasource);
 
@@ -111,7 +116,7 @@ public class DispatcherService extends Service {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            CustomAsyncTask sendSms = new CustomAsyncTask(RequestMethod.POST, null, jsonInfo, new CustomAsyncTaskExecution<JSONObject>() {
+            CustomAsyncTask sendSms = new CustomAsyncTask(SERVICE_URL + ":" + port + "/sms", RequestMethod.POST, null, jsonInfo, new CustomAsyncTaskExecution<JSONObject>() {
 
                 @Override
                 public void preExecution() {
@@ -140,7 +145,7 @@ public class DispatcherService extends Service {
 
             if (keepRunning) {
                 if (jsonMsgArray.length() != 0) {
-                    sendSms.execute(SERVICE_URL + ":" + port + "/sms");
+                    sendSms.start();
                 }
                 try {
                     Thread.sleep(500);
