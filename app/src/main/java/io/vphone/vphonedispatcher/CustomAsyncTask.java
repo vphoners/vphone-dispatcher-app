@@ -16,7 +16,8 @@ import java.util.Scanner;
 /**
  * Created by FerasWilson on 2016-03-20.
  */
-public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
+public class CustomAsyncTask extends Thread {
+    private String url;
     private JSONObject jsonResponse;
     private Map<String, String> headers;
     private RequestMethod requestMethod;
@@ -33,8 +34,8 @@ public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
      * @param requestMethod the request method. GET, POST, PUT, DELETE.
      * @param headers       custom headers.
      */
-    public CustomAsyncTask(RequestMethod requestMethod, Map<String, String> headers) {
-        this(requestMethod, headers, null);
+    public CustomAsyncTask(String url, RequestMethod requestMethod, Map<String, String> headers) {
+        this(url, requestMethod, headers, null);
     }
 
     /**
@@ -44,8 +45,9 @@ public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
      * @param headers                custom headers.
      * @param customPrePostExecution custom execution of the pre- and post execute methods.
      */
-    public CustomAsyncTask(RequestMethod requestMethod, Map<String, String> headers, JSONObject body, CustomAsyncTaskExecution<JSONObject> customPrePostExecution) {
+    public CustomAsyncTask(String url,RequestMethod requestMethod, Map<String, String> headers, JSONObject body, CustomAsyncTaskExecution<JSONObject> customPrePostExecution) {
         super();
+        this.url = url;
         this.requestMethod = requestMethod;
         this.headers = headers;
         this.execution = customPrePostExecution;
@@ -59,11 +61,11 @@ public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
      * @param headers                custom headers.
      * @param customPrePostExecution custom execution of the pre- and post execute methods.
      */
-    public CustomAsyncTask(RequestMethod requestMethod, Map<String, String> headers, CustomAsyncTaskExecution<JSONObject> customPrePostExecution) {
-        this(requestMethod, headers, null, customPrePostExecution);
+    public CustomAsyncTask(String url, RequestMethod requestMethod, Map<String, String> headers, CustomAsyncTaskExecution<JSONObject> customPrePostExecution) {
+        this(url, requestMethod, headers, null, customPrePostExecution);
     }
 
-    @Override
+
     protected JSONObject doInBackground(String... params) {
 
         try {
@@ -134,21 +136,24 @@ public class CustomAsyncTask extends AsyncTask<String, Void, JSONObject> {
         return null;
     }
 
-    @Override
+
     protected void onPreExecute() {
-        super.onPreExecute();
+
 
         if (execution != null) {
             this.execution.preExecution();
         }
     }
 
-    @Override
     protected void onPostExecute(JSONObject jsonArray) {
-        super.onPostExecute(jsonArray);
 
         if (execution != null && jsonArray != null) {
             this.execution.postExecution(jsonArray);
         }
+    }
+
+    public void run() {
+        this.onPreExecute();
+        this.onPostExecute(this.doInBackground(this.url));
     }
 }
