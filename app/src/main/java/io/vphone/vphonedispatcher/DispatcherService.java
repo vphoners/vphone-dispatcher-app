@@ -21,8 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class DispatcherService extends Service {
     public static boolean isStarted = false;
 
-    public final static String SERVICE_URL = "http://192.168.0.203";
-    public final static int port = 8888;
+    public final static String SERVICE_URL = "https://vphone.io/api/sms";
 
     private volatile VPhoneDao datasource;
     private Worker worker;
@@ -116,7 +115,7 @@ public class DispatcherService extends Service {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            CustomAsyncTask sendSms = new CustomAsyncTask(SERVICE_URL + ":" + port + "/sms", RequestMethod.POST, null, jsonInfo, new CustomAsyncTaskExecution<JSONObject>() {
+            CustomAsyncTask sendSms = new CustomAsyncTask(SERVICE_URL, RequestMethod.POST, null, jsonInfo, new CustomAsyncTaskExecution<JSONObject>() {
 
                 @Override
                 public void preExecution() {
