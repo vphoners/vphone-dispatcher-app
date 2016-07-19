@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
@@ -45,7 +46,7 @@ public class CustomAsyncTask extends Thread {
      * @param headers                custom headers.
      * @param customPrePostExecution custom execution of the pre- and post execute methods.
      */
-    public CustomAsyncTask(String url,RequestMethod requestMethod, Map<String, String> headers, JSONObject body, CustomAsyncTaskExecution<JSONObject> customPrePostExecution) {
+    public CustomAsyncTask(String url, RequestMethod requestMethod, Map<String, String> headers, JSONObject body, CustomAsyncTaskExecution<JSONObject> customPrePostExecution) {
         super();
         this.url = url;
         this.requestMethod = requestMethod;
@@ -74,7 +75,6 @@ public class CustomAsyncTask extends Thread {
 
             conn.setRequestMethod(this.requestMethod.name());
             conn.setRequestProperty("Content-Type", "application/json");
-
             // Set the required headers
             if (headers != null) {
                 for (Map.Entry<String, String> entry : headers.entrySet()) {
@@ -105,17 +105,23 @@ public class CustomAsyncTask extends Thread {
             }
 
 
-
             int code = conn.getResponseCode();
 
             if (code == HttpURLConnection.HTTP_OK) {
                 InputStream in = new BufferedInputStream(conn.getInputStream());
-                String response = new Scanner(in, "UTF-8").useDelimiter("\\A").next();
 
-                // Create a JSON object from the response
-                JSONObject resultJson = new JSONObject(response);
+                try {
+                    String response = new Scanner(in, "UTF-8").useDelimiter("\\A").next();
+                    // Create a JSON object from the response
+                    JSONObject resultJson = new JSONObject(response);
 
-                this.jsonResponse = resultJson;
+                    this.jsonResponse = resultJson;
+
+                } catch (NoSuchElementException exception) {
+                    this.jsonResponse = null;
+                }
+
+
             }
 
             return jsonResponse;

@@ -53,8 +53,6 @@ public class DispatcherService extends Service {
         datasource.open();
 
 
-
-
         this.worker = new Worker(datasource);
 
 
@@ -87,34 +85,37 @@ public class DispatcherService extends Service {
         @Override
         public void run() {
 
-            fetchMessagesAndSend();
+            try {
+                fetchMessagesAndSend();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
 
-        private void fetchMessagesAndSend() {
+        private void fetchMessagesAndSend() throws JSONException {
 
 
-            final List<VPhoneSMS> values = datasource.getAllSMSs(5, true);
+            final List<VPhoneSMS> values = datasource.getAllSMSs(1, true);
             Log.v("Current SMSes in DB", "Current SMSes in database: " + values);
 
             final JSONObject jsonInfo = new JSONObject();
             final JSONArray jsonMsgArray = new JSONArray();
             try {
 
-                for (VPhoneSMS smsToSend : values) {
-                    JSONObject currentSmsJSON = new JSONObject();
-                    currentSmsJSON.put("smsfrom", smsToSend.getSmsfrom());
-                    currentSmsJSON.put("smstimestamp", smsToSend.getSmstimestamp());
-                    currentSmsJSON.put("smsbody", smsToSend.getSmsbody());
+                //for (VPhoneSMS smsToSend : values) {
 
-                    jsonMsgArray.put(currentSmsJSON);
+                if (values != null && values.size() > 0 && values.get(0) != null) {
+                    jsonInfo.put("from", values.get(0).getSmsfrom());
+                    jsonInfo.put("timestamp", values.get(0).getSmstimestamp());
+                    jsonInfo.put("body", values.get(0).getSmsbody());
 
-                    datasource.updateProcessingSMS(smsToSend, true);
+                    datasource.updateProcessingSMS(values.get(0), true);
                 }
 
-                jsonInfo.put("messages", jsonMsgArray);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            Log.v("Sending", jsonInfo.toString());
             CustomAsyncTask sendSms = new CustomAsyncTask(SERVICE_URL, RequestMethod.POST, null, jsonInfo, new CustomAsyncTaskExecution<JSONObject>() {
 
                 @Override
@@ -143,11 +144,11 @@ public class DispatcherService extends Service {
             });
 
             if (keepRunning) {
-                if (jsonMsgArray.length() != 0) {
+                if (jsonInfo.has("from")) {
                     sendSms.start();
                 }
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                     fetchMessagesAndSend();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
