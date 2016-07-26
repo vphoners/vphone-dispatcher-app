@@ -7,11 +7,17 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Queue;
@@ -21,9 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class DispatcherService extends Service {
     public static boolean isStarted = false;
 
-    public final static String SERVICE_URL = "https://vphone.io/api/sms";
 
-    private volatile VPhoneDao datasource;
     private Worker worker;
 
     public DispatcherService() {
@@ -49,11 +53,7 @@ public class DispatcherService extends Service {
         showNotification();
         isStarted = true;
 
-        datasource = new VPhoneDao(this);
-        datasource.open();
-
-
-        this.worker = new Worker(datasource);
+        this.worker = new Worker();
 
 
     }
@@ -68,94 +68,40 @@ public class DispatcherService extends Service {
         m.start();
 
 
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
 
-    private class Worker implements Runnable {
+    public class Worker implements Runnable {
 
-        private VPhoneDao datasource;
-        private boolean keepRunning;
-
-        public Worker(VPhoneDao datasource) {
-            this.datasource = datasource;
-            this.keepRunning = true;
-        }
+        private boolean keepRunning = true;
 
         @Override
         public void run() {
-
             try {
                 fetchMessagesAndSend();
-            } catch (JSONException e) {
-                e.printStackTrace();
+            } catch (InterruptedException e) {
+                // ignore, just get out of the thread
             }
         }
 
-        private void fetchMessagesAndSend() throws JSONException {
-
-
-            final List<VPhoneSMS> values = datasource.getAllSMSs(1, true);
-            Log.v("Current SMSes in DB", "Current SMSes in database: " + values);
-
-            final JSONObject jsonInfo = new JSONObject();
-            final JSONArray jsonMsgArray = new JSONArray();
+        private void fetchMessagesAndSend() throws InterruptedException {
+            VPhoneDao datasource = new VPhoneDao(DispatcherService.this);
+            BackendController backend = new BackendController();
+            datasource.open();
             try {
-
-                //for (VPhoneSMS smsToSend : values) {
-
-                if (values != null && values.size() > 0 && values.get(0) != null) {
-                    jsonInfo.put("from", values.get(0).getSmsfrom());
-                    jsonInfo.put("timestamp", values.get(0).getSmstimestamp());
-                    jsonInfo.put("body", values.get(0).getSmsbody());
-
-                    datasource.updateProcessingSMS(values.get(0), true);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            Log.v("Sending", jsonInfo.toString());
-            CustomAsyncTask sendSms = new CustomAsyncTask(SERVICE_URL, RequestMethod.POST, null, jsonInfo, new CustomAsyncTaskExecution<JSONObject>() {
-
-                @Override
-                public void preExecution() {
-
-                }
-
-                @Override
-                public void postExecution(JSONObject resultParam) {
-                    try {
-                        if (resultParam != null && resultParam.get("success").equals("true")) {
-                            for (VPhoneSMS sentSMS : values) {
-                                datasource.deleteSMS(sentSMS);
-                            }
-                        } else {
-                            for (VPhoneSMS sentSMS : values) {
-                                datasource.updateProcessingSMS(sentSMS, false);
-                            }
-
-                        }
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                while (keepRunning) {
+                    final List<VPhoneSMS> values = datasource.getAllSMSs(100, true);
+                    for(VPhoneSMS sms: values) {
+                        if(backend.dispatch(sms))
+                            datasource.deleteSMS(sms);
                     }
-                }
-            });
 
-            if (keepRunning) {
-                if (jsonInfo.has("from")) {
-                    sendSms.start();
-                }
-                try {
                     Thread.sleep(1000);
-                    fetchMessagesAndSend();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
+            }finally {
+                datasource.close();
             }
-
-
         }
 
         public void setRunning(boolean running) {
@@ -172,9 +118,6 @@ public class DispatcherService extends Service {
         Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
         worker.setRunning(false);
         isStarted = false;
-
-
-        datasource.close();
     }
 
     @Override
