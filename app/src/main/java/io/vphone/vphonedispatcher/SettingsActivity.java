@@ -60,12 +60,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         setupSimplePreferencesScreen();
 
-        findPreference("service_enabled").setDefaultValue(Boolean.valueOf(DispatcherService.isStarted));
+        findPreference("service_enabled").setDefaultValue(Boolean.valueOf(getSettingValueFromDb(VPhoneDao.START_SERVICE)));
         findPreference("service_enabled")
                 .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override
                     public boolean onPreferenceChange(Preference preference, Object o) {
                         Boolean v = (Boolean) o;
+                        setSettingValueInDb(VPhoneDao.START_SERVICE, o.toString());
                         if(v.booleanValue()) {
                             startService(new Intent(SettingsActivity.this, DispatcherService.class));
                         } else {
@@ -76,6 +77,37 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     }
                 });
 
+        findPreference("device_key").setDefaultValue(getSettingValueFromDb(VPhoneDao.DEVICE_KEY));
+        findPreference("device_key").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object o) {
+                String v = (String) o;
+                setSettingValueInDb(VPhoneDao.DEVICE_KEY, v);
+
+                return true;
+            }
+        });
+
+
+    }
+
+    private void setSettingValueInDb(String name, String value) {
+        VPhoneDao vPhoneDao = new VPhoneDao(SettingsActivity.this);
+        vPhoneDao.open();
+        try {
+            vPhoneDao.updateSetting(name, value);
+        }finally {
+            vPhoneDao.close();
+        }
+    }
+    private String getSettingValueFromDb(String name) {
+        VPhoneDao vPhoneDao = new VPhoneDao(SettingsActivity.this);
+        vPhoneDao.open();
+        try {
+            return vPhoneDao.getSetting(name);
+        }finally {
+            vPhoneDao.close();
+        }
     }
 
     /**

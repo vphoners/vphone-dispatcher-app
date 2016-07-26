@@ -18,23 +18,30 @@ public class BackendController {
     public final static String SERVICE_URL = "https://vphone.io/api/sms";
     private RestTemplate restTemplate;
     private String serviceUrl;
+    private String device;
 
-    public BackendController(RestTemplate restTemplate, String serviceUrl) {
+    public BackendController(RestTemplate restTemplate, String serviceUrl, String device) {
         this.restTemplate = restTemplate;
         this.serviceUrl = serviceUrl;
+        this.device = device;
     }
 
-    public BackendController() {
+    public BackendController(String device) {
         restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         serviceUrl = SERVICE_URL;
+        this.device = device;
     }
 
     public boolean dispatch(VPhoneSMS sms) {
+        if(device == null) {
+            // cannot dispatch without a device
+            return false;
+        }
         Message message = new Message(sms.getSmsfrom(),
                 sms.getSmstimestamp(),
                 sms.getSmsbody(),
-                "mohsen");
+                device);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

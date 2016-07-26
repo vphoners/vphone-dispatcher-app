@@ -25,7 +25,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class DispatcherService extends Service {
-    public static boolean isStarted = false;
 
 
     private Worker worker;
@@ -51,7 +50,6 @@ public class DispatcherService extends Service {
 
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
-        isStarted = true;
 
         this.worker = new Worker();
 
@@ -87,16 +85,15 @@ public class DispatcherService extends Service {
 
         private void fetchMessagesAndSend() throws InterruptedException {
             VPhoneDao datasource = new VPhoneDao(DispatcherService.this);
-            BackendController backend = new BackendController();
             datasource.open();
+            BackendController backend = new BackendController(datasource.getSetting(VPhoneDao.DEVICE_KEY));
             try {
                 while (keepRunning) {
-                    final List<VPhoneSMS> values = datasource.getAllSMSs(100, true);
+                    final List<VPhoneSMS> values = datasource.getAllSMSs();
                     for(VPhoneSMS sms: values) {
                         if(backend.dispatch(sms))
                             datasource.deleteSMS(sms);
                     }
-
                     Thread.sleep(1000);
                 }
             }finally {
@@ -117,7 +114,6 @@ public class DispatcherService extends Service {
         // Tell the user we stopped.
         Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
         worker.setRunning(false);
-        isStarted = false;
     }
 
     @Override

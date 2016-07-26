@@ -28,11 +28,12 @@ public class BackendControllerTest {
     @Mock
     RestTemplate restTemplate;
     String url = "http://here.com";
+    String device = "mmm";
 
 
     @Test
     public void testDispatch() throws Exception {
-        BackendController b = new BackendController(restTemplate, url);
+        BackendController b = new BackendController(restTemplate, url, device);
 
         VPhoneSMS sms = new VPhoneSMS();
         sms.setId(123);
@@ -51,12 +52,12 @@ public class BackendControllerTest {
         assertEquals(sms.getSmsfrom(), msg.getFrom());
         assertEquals(sms.getSmstimestamp(), msg.getTimestamp());
         assertEquals(sms.getSmsbody(), msg.getBody());
-        assertEquals("mohsen", msg.getDevice());
+        assertEquals(device, msg.getDevice());
     }
 
     @Test
     public void testDispatchFailure() throws Exception {
-        BackendController b = new BackendController(restTemplate, url);
+        BackendController b = new BackendController(restTemplate, url, device);
         when(restTemplate.postForObject(eq(url), any(), Mockito.<Class<Object>>any()))
                 .thenThrow(new ResourceAccessException("error"));
 
@@ -67,6 +68,21 @@ public class BackendControllerTest {
         sms.setSmstimestamp("now");
         boolean ret = b.dispatch(sms);
         assertEquals(false, ret);
+    }
+
+    @Test
+    public void testNoDevice() throws Exception {
+        BackendController b = new BackendController(restTemplate, url, null);
+
+        VPhoneSMS sms = new VPhoneSMS();
+        sms.setId(123);
+        sms.setSmsbody("test");
+        sms.setSmsfrom("1234");
+        sms.setSmstimestamp("now");
+        boolean r = b.dispatch(sms);
+
+        assertEquals(false, r);
+
     }
 
 }

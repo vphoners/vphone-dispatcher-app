@@ -12,20 +12,28 @@ public class VPhoneSQLiteHelper extends SQLiteOpenHelper {
     public static final String COLUMN_BODY = "smsbody";
     public static final String COLUMN_FROM = "smsfrom";
     public static final String COLUMN_TIMESTAMP = "smstimestamp";
-    public static final String COLUMN_PROCESSING = "processing";
+
+    public static final String TABLE_SETTINGS = "vphone_settings";
+    public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_VALUE = "value";
+
 
     private static final String DATABASE_NAME = "vphone.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 6;
 
     // Database creation sql statement
-    private static final String DATABASE_CREATE = "create table "
+    private static final String SMS_TABLE_CREATE = "create table "
             + TABLE_SMSES + "( " + COLUMN_ID
             + " integer primary key autoincrement, "
             + COLUMN_BODY + " text, "
             + COLUMN_FROM + " varchar(255),"
-            + COLUMN_TIMESTAMP + " varchar(255),"
-            + COLUMN_PROCESSING + " int(11)" +
-            ");";
+            + COLUMN_TIMESTAMP + " varchar(255)"
+            + ");";
+    private static final String SETTINGS_TABLE_CREATE = "create table "
+            + TABLE_SETTINGS + "("
+            + COLUMN_NAME + " varchar(255) primary key,"
+            + COLUMN_VALUE + " varchar(255)"
+            + ");";
 
     public VPhoneSQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -33,7 +41,8 @@ public class VPhoneSQLiteHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase database) {
-        database.execSQL(DATABASE_CREATE);
+        database.execSQL(SMS_TABLE_CREATE);
+        database.execSQL(SETTINGS_TABLE_CREATE);
     }
 
     @Override
@@ -42,6 +51,7 @@ public class VPhoneSQLiteHelper extends SQLiteOpenHelper {
                 "Upgrading database from version " + oldVersion + " to "
                         + newVersion + ", which will destroy all old data");
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SMSES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SETTINGS);
         onCreate(db);
     }
 
