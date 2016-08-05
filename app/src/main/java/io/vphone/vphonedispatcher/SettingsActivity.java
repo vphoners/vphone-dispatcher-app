@@ -60,7 +60,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         setupSimplePreferencesScreen();
 
-        findPreference("service_enabled").setDefaultValue(Boolean.valueOf(getSettingValueFromDb(VPhoneDao.START_SERVICE)));
+        boolean shouldStart = Boolean.valueOf(getSettingValueFromDb(VPhoneDao.START_SERVICE));
+        findPreference("service_enabled").setDefaultValue(shouldStart);
         findPreference("service_enabled")
                 .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override

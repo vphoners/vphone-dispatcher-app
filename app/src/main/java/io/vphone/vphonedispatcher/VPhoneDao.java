@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -55,7 +56,7 @@ public class VPhoneDao {
 
     public void deleteSMS(VPhoneSMS SMS) {
         long id = SMS.getId();
-        System.out.println("SMS deleted with id: " + id);
+        Log.v("vphone", "SMS deleted with id: " + id);
         database.delete(VPhoneSQLiteHelper.TABLE_SMSES, VPhoneSQLiteHelper.COLUMN_ID
                 + " = " + id, null);
     }

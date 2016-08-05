@@ -50,8 +50,8 @@ public class BackendController {
         try {
             restTemplate.postForObject(serviceUrl, request, Void.class);
         } catch (RestClientException e) {
-            Log.i("BackendController", "Could not send the message");
-            Log.d("BackendController", "Error", e);
+            Log.i("vphone", "Could not send the message");
+            Log.d("vphone", "Error", e);
             return false;
         }
         return true;

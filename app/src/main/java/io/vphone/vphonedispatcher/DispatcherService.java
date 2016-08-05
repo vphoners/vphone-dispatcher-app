@@ -46,36 +46,27 @@ public class DispatcherService extends Service {
 
     @Override
     public void onCreate() {
-//        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
-
         this.worker = new Worker();
-
-
+        worker.start();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i("LocalService", "Received start id " + startId + ": " + intent);
-
-        Log.v("Service DB", "Getting all SMSes");
-
-        Thread m = new Thread(this.worker);
-        m.start();
-
-
         return START_STICKY;
     }
 
 
-    public class Worker implements Runnable {
+
+
+    public class Worker extends Thread {
 
         private boolean keepRunning = true;
 
         @Override
         public void run() {
+            Log.v("vphone", "starting dispatcher");
             try {
                 fetchMessagesAndSend();
             } catch (InterruptedException e) {
@@ -91,6 +82,7 @@ public class DispatcherService extends Service {
                 while (keepRunning) {
                     final List<VPhoneSMS> values = datasource.getAllSMSs();
                     for(VPhoneSMS sms: values) {
+                        Log.v("vphone", "dispatching sms " + sms.getId());
                         if(backend.dispatch(sms))
                             datasource.deleteSMS(sms);
                     }
@@ -108,12 +100,14 @@ public class DispatcherService extends Service {
 
     @Override
     public void onDestroy() {
-        // Cancel the persistent notification.
-//        mNM.cancel(NOTIFICATION);
-
         // Tell the user we stopped.
         Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
         worker.setRunning(false);
+        worker.interrupt();
+        try {
+            worker.join();
+        } catch (InterruptedException e) {
+        }
     }
 
     @Override

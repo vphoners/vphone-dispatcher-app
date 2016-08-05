@@ -58,7 +58,7 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
 
-    <string name="local_service_started">local_service_started</string>
-    <string name="local_service_stopped">local_service_stopped</string>
+    <string name="local_service_started">vphone service started</string>
+    <string name="local_service_stopped">vphone service stopped</string>
     <string name="local_service_label">vphone dispatcher</string>
 </resources>
