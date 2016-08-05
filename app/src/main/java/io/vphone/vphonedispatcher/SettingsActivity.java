@@ -61,6 +61,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         setupSimplePreferencesScreen();
 
         boolean shouldStart = Boolean.valueOf(getSettingValueFromDb(VPhoneDao.START_SERVICE));
+        if(shouldStart) {
+            startService(new Intent(SettingsActivity.this, DispatcherService.class));
+        }
         findPreference("service_enabled").setDefaultValue(shouldStart);
         findPreference("service_enabled")
                 .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
