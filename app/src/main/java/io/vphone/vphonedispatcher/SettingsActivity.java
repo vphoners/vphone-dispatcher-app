@@ -4,6 +4,7 @@ package io.vphone.vphonedispatcher;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -14,6 +15,8 @@ import android.preference.*;
 import android.support.v7.app.ActionBar;
 import android.text.TextUtils;
 import android.view.MenuItem;
+
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -41,6 +44,44 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupActionBar();
+
+        //  Declare a new thread to do a preference check
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //  Initialize SharedPreferences
+                SharedPreferences getPrefs = PreferenceManager
+                        .getDefaultSharedPreferences(getBaseContext());
+
+                //  Create a new boolean and preference and set it to true
+                boolean isFirstStart = getPrefs.getBoolean("firstStart", true);
+
+                //  If the activity has never started before...
+                if (isFirstStart && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+
+                    //  Launch app intro
+                    Intent i = new Intent(SettingsActivity.this, IntroActivity.class);
+                    startActivity(i);
+
+                    //  Make a new preferences editor
+                    SharedPreferences.Editor e = getPrefs.edit();
+
+                    //  Edit preference to make it false because we don't want this to run again
+                    e.putBoolean("firstStart", false);
+
+                    //  Apply changes
+                    e.apply();
+                }else if(!StringUtils.hasText(getSettingValueFromDb(VPhoneDao.DEVICE_KEY))) {
+                    //  Launch activation
+                    Intent i = new Intent(SettingsActivity.this, ActivationActivity.class);
+                    startActivity(i);
+                }
+            }
+        });
+
+        // Start the thread
+        t.start();
+
     }
 
     /**
@@ -48,10 +89,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      */
     private void setupActionBar() {
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            // Show the Up button in the action bar.
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
     }
 
     @Override

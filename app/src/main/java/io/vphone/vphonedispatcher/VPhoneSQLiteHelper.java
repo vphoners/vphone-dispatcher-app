@@ -22,7 +22,7 @@ public class VPhoneSQLiteHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 6;
 
     // Database creation sql statement
-    private static final String SMS_TABLE_CREATE = "create table "
+    private static final String SMS_TABLE_CREATE = "create table IF NOT EXISTS "
             + TABLE_SMSES + "( " + COLUMN_ID
             + " integer primary key autoincrement, "
             + COLUMN_BODY + " text, "
