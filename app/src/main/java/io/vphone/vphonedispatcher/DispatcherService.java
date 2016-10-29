@@ -2,27 +2,14 @@ package io.vphone.vphonedispatcher;
 
 import android.app.Service;
 import android.content.Intent;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.content.SharedPreferences;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
-import android.support.annotation.VisibleForTesting;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class DispatcherService extends Service {
 
@@ -75,27 +62,28 @@ public class DispatcherService extends Service {
         }
 
         private void fetchMessagesAndSend() throws InterruptedException {
-            VPhoneDao datasource = new VPhoneDao(DispatcherService.this);
-            datasource.open();
-            BackendController backend = new BackendController(datasource.getSetting(VPhoneDao.DEVICE_KEY));
-            try {
-                while (keepRunning) {
-                    final List<VPhoneSMS> values = datasource.getAllSMSs();
-                    for(VPhoneSMS sms: values) {
-                        Log.v("vphone", "dispatching sms " + sms.getId());
-                        if(backend.dispatch(sms))
-                            datasource.deleteSMS(sms);
-                    }
-                    Thread.sleep(1000);
+            VPhoneDao datasource = VPhoneDao.getInstance(DispatcherService.this);
+            BackendController backend = new BackendController(getDeviceKey());
+            while (keepRunning) {
+                final List<VPhoneSMS> values = datasource.getAllSMSs();
+                for(VPhoneSMS sms: values) {
+                    Log.v("vphone", "dispatching sms " + sms.getId());
+                    if(backend.dispatch(sms))
+                        datasource.deleteSMS(sms);
                 }
-            }finally {
-                datasource.close();
+                Thread.sleep(1000);
             }
         }
 
         public void setRunning(boolean running) {
             this.keepRunning = running;
         }
+    }
+
+    private String getDeviceKey() {
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(this);
+        return prefs.getString(getString(R.string.device_key), null);
     }
 
     @Override

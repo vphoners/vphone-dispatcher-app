@@ -8,28 +8,34 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import org.json.JSONObject;
 
-/**
- * Created by FerasWilson on 2016-07-13.
- */
 public class VPhoneDao {
-    public static final String DEVICE_KEY = "device";
-    public static final String START_SERVICE = "start_service";
+    private static VPhoneDao sInstance;
     // Database fields
     private SQLiteDatabase database;
     private VPhoneSQLiteHelper dbHelper;
     private String[] allColumns = {VPhoneSQLiteHelper.COLUMN_ID,
             VPhoneSQLiteHelper.COLUMN_BODY, VPhoneSQLiteHelper.COLUMN_FROM, VPhoneSQLiteHelper.COLUMN_TIMESTAMP};
 
-    public VPhoneDao(Context context) {
+    public static synchronized VPhoneDao getInstance(Context context) {
+
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (sInstance == null) {
+            sInstance = new VPhoneDao(context.getApplicationContext());
+            sInstance.open();
+        }
+        return sInstance;
+    }
+    private VPhoneDao(Context context) {
         dbHelper = new VPhoneSQLiteHelper(context);
     }
 
-    public void open() throws SQLException {
+    private void open() throws SQLException {
         database = dbHelper.getWritableDatabase();
     }
 
@@ -86,35 +92,4 @@ public class VPhoneDao {
         SMS.setSmstimestamp(cursor.getString(3));
         return SMS;
     }
-
-    public void updateSetting(String name, String value) {
-        ContentValues cv = new ContentValues();
-        SQLiteStatement stmt = database.compileStatement("REPLACE INTO " + VPhoneSQLiteHelper.TABLE_SETTINGS
-                +" (" + VPhoneSQLiteHelper.COLUMN_NAME + " ,"
-                + VPhoneSQLiteHelper.COLUMN_VALUE + ") VALUES (?,?)");
-        stmt.bindString(1, name);
-        stmt.bindString(2, value);
-        stmt.execute();
-    }
-
-    public String getSetting(String name) {
-        Cursor cursor = database.query(VPhoneSQLiteHelper.TABLE_SETTINGS,
-                new String[]{VPhoneSQLiteHelper.COLUMN_VALUE},
-                VPhoneSQLiteHelper.COLUMN_NAME + " = ?",
-                new String[]{name},
-                null,
-                null,
-                null);
-        try {
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                return cursor.getString(0);
-            }
-            return null;
-        }finally {
-            // make sure to close the cursor
-            cursor.close();
-        }
-    }
-
 }

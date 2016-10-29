@@ -66,4 +66,6 @@
     <string name="ac_progress_message">Activation in progress</string>
     <string name="ac_progress_title">Activation in Progress</string>
     <string name="cancel">Cancel</string>
+    <string name="service_enabled">service_enabled</string>
+    <string name="device_key">device_key</string>
 </resources>

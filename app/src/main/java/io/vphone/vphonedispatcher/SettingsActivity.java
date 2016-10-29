@@ -40,6 +40,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      */
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,32 +50,22 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                //  Initialize SharedPreferences
-                SharedPreferences getPrefs = PreferenceManager
-                        .getDefaultSharedPreferences(getBaseContext());
 
-                //  Create a new boolean and preference and set it to true
-                boolean isFirstStart = getPrefs.getBoolean("firstStart", true);
-
+                SharedPreferences prefs = PreferenceManager
+                        .getDefaultSharedPreferences(SettingsActivity.this);
                 //  If the activity has never started before...
-                if (isFirstStart && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-
-                    //  Launch app intro
-                    Intent i = new Intent(SettingsActivity.this, IntroActivity.class);
-                    startActivity(i);
-
-                    //  Make a new preferences editor
-                    SharedPreferences.Editor e = getPrefs.edit();
-
-                    //  Edit preference to make it false because we don't want this to run again
-                    e.putBoolean("firstStart", false);
-
-                    //  Apply changes
-                    e.apply();
-                }else if(!StringUtils.hasText(getSettingValueFromDb(VPhoneDao.DEVICE_KEY))) {
-                    //  Launch activation
-                    Intent i = new Intent(SettingsActivity.this, ActivationActivity.class);
-                    startActivity(i);
+                if (!StringUtils.hasText(prefs.getString(getString(R.string.device_key), null)))
+                {
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        //  Launch app intro
+                        Intent i = new Intent(SettingsActivity.this, IntroActivity.class);
+                        startActivity(i);
+                    }else {
+                        //  Launch activation
+                        Intent i = new Intent(SettingsActivity.this, ActivationActivity.class);
+                        startActivity(i);
+                    }
+                    finish();
                 }
             }
         });
@@ -97,58 +88,27 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         setupSimplePreferencesScreen();
 
-        boolean shouldStart = Boolean.valueOf(getSettingValueFromDb(VPhoneDao.START_SERVICE));
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(SettingsActivity.this);
+
+        boolean shouldStart = prefs.getBoolean(getString(R.string.service_enabled), false);
         if(shouldStart) {
             startService(new Intent(SettingsActivity.this, DispatcherService.class));
         }
-        findPreference("service_enabled").setDefaultValue(shouldStart);
         findPreference("service_enabled")
                 .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override
                     public boolean onPreferenceChange(Preference preference, Object o) {
                         Boolean v = (Boolean) o;
-                        setSettingValueInDb(VPhoneDao.START_SERVICE, o.toString());
                         if(v.booleanValue()) {
                             startService(new Intent(SettingsActivity.this, DispatcherService.class));
                         } else {
                             stopService(new Intent(SettingsActivity.this, DispatcherService.class));
                         }
-
                         return true;
                     }
                 });
 
-        findPreference("device_key").setDefaultValue(getSettingValueFromDb(VPhoneDao.DEVICE_KEY));
-        findPreference("device_key").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object o) {
-                String v = (String) o;
-                setSettingValueInDb(VPhoneDao.DEVICE_KEY, v);
-
-                return true;
-            }
-        });
-
-
-    }
-
-    private void setSettingValueInDb(String name, String value) {
-        VPhoneDao vPhoneDao = new VPhoneDao(SettingsActivity.this);
-        vPhoneDao.open();
-        try {
-            vPhoneDao.updateSetting(name, value);
-        }finally {
-            vPhoneDao.close();
-        }
-    }
-    private String getSettingValueFromDb(String name) {
-        VPhoneDao vPhoneDao = new VPhoneDao(SettingsActivity.this);
-        vPhoneDao.open();
-        try {
-            return vPhoneDao.getSetting(name);
-        }finally {
-            vPhoneDao.close();
-        }
     }
 
     /**

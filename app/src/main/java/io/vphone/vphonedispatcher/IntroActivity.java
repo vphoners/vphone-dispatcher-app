@@ -44,6 +44,7 @@ public class IntroActivity extends AppIntro {
     private void activate() {
         Intent i = new Intent(this, ActivationActivity.class);
         startActivity(i);
+        finish();
     }
 
     @Override

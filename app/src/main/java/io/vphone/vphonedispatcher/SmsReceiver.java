@@ -17,9 +17,7 @@ public class SmsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if(intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")){
-            datasource = new VPhoneDao(context);
-            datasource.open();
-            
+            datasource = VPhoneDao.getInstance(context);
             Bundle bundle = intent.getExtras();           //---get the SMS message passed in---
             SmsMessage[] msgs = null;
             if (bundle != null){
@@ -44,7 +42,6 @@ public class SmsReceiver extends BroadcastReceiver {
                     Log.e("Error processing", "Error processing incoming SMS: " + e.getMessage());
                 }
             }
-            datasource.close();
         }
     }
 }

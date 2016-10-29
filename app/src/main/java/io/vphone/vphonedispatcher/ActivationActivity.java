@@ -5,9 +5,11 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -135,6 +137,10 @@ public class ActivationActivity extends AppCompatActivity {
             }
         });
 
+        setupForwarding(forwardTo);
+    }
+
+    private void setupForwarding(String forwardTo) {
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) ==
                 PackageManager.PERMISSION_GRANTED) {
 
@@ -197,12 +203,6 @@ public class ActivationActivity extends AppCompatActivity {
             phoneNumberField.setText(phoneNumber);
         }
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
 
     private boolean havePermission(String perm) {
         if(ActivityCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
@@ -274,7 +274,7 @@ public class ActivationActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        progress.setMessage("Enter this number on your other phone when you received the call:" +
+                        progress.setMessage("You'll shortly receive a call, enter this number for activation:\n\n" +
                                 activationResponse.getValidationCode());
                     }
                 });
@@ -305,14 +305,11 @@ public class ActivationActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                VPhoneDao vPhoneDao = new VPhoneDao(ActivationActivity.this);
-                                vPhoneDao.open();
-                                try {
-                                    vPhoneDao.updateSetting(VPhoneDao.DEVICE_KEY, activationResponse.getDevice());
-                                }finally {
-                                    vPhoneDao.close();
-                                }
                                 progress.dismiss();
+                                enableServiceWithDeviceKey(activationResponse.getDevice());
+                                Intent i = new Intent(ActivationActivity.this, SettingsActivity.class);
+                                startActivity(i);
+                                finish();
                             }
                         });
                         break;
@@ -338,6 +335,30 @@ public class ActivationActivity extends AppCompatActivity {
                 callerIdActivationThread = null;
             }
         }
+    }
+
+    private void enableServiceWithDeviceKey(String deviceKey) {
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(this);
+        SharedPreferences.Editor e = prefs.edit();
+        e.putString(getString(R.string.device_key), deviceKey);
+        e.putBoolean(getString(R.string.service_enabled), true);
+        e.apply();
+
+        startService(new Intent(this, DispatcherService.class));
+    }
+
+    @Override
+    protected void onPause() {
+        if(null != callerIdActivationThread) {
+            callerIdActivationThread.interrupt();
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onBackPressed() {
+        // disabled
     }
 }
 
