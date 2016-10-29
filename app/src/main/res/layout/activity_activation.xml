@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="io.vphone.vphonedispatcher.ActivationActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+    </android.support.design.widget.AppBarLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+        <TextView
+            android:id="@id/activate_note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enabling access to SMSs and calls on this phone from your other phone"
+            android:layout_margin="@dimen/fab_margin"
+            android:textAlignment="center"
+            />
+        <EditText
+            android:id="@id/phone_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:hint="Phone Number of This Phone"
+            android:layout_margin="@dimen/fab_margin"
+            android:layout_below="@id/activate_note"
+            />
+        <EditText
+            android:id="@id/phone_number_to_divert_to"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:hint="Phone Number to Forward Calls"
+            android:layout_margin="@dimen/fab_margin"
+            android:layout_below="@id/phone_number"
+            />
+        <EditText
+            android:id="@id/email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
+            android:hint="Email Address"
+            android:layout_margin="@dimen/fab_margin"
+            android:layout_below="@id/phone_number_to_divert_to"
+            />
+
+    </RelativeLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:text="Activate"
+        android:drawableRight="@drawable/ic_ring_volume_black"
+        android:layout_margin="@dimen/fab_margin"
+        android:onClick="activate"
+
+        />
+
+
+
+</android.support.design.widget.CoordinatorLayout>

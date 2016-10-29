@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="email" type="id">email</item>
+    <item name="phone_number" type="id">phone_number</item>
+    <item name="activate_note" type="id">activation_note</item>
+    <item name="phone_number_to_divert_to" type="id">phone_number_to_divert_to</item>
+</resources>
