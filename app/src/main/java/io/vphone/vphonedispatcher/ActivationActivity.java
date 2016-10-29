@@ -349,11 +349,11 @@ public class ActivationActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
+    protected void onStop() {
         if(null != callerIdActivationThread) {
             callerIdActivationThread.interrupt();
         }
-        super.onPause();
+        super.onStop();
     }
 
     @Override
